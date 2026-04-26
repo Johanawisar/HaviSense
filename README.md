@@ -1,97 +1,48 @@
-# HaviSense Backend
+# HaviSense Frontend — Next.js + TypeScript
 
-## Setup rápido (5 minutos)
+## Setup en 3 pasos
 
 ### 1. Instalar dependencias
 ```bash
-pip install -r requirements.txt
+npm install
 ```
 
-### 2. Configurar API key
+### 2. Configurar URL del backend
 ```bash
-cp .env.example .env
-# Edita .env y pega tu ANTHROPIC_API_KEY
+# Crear .env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
 ```
 
-### 3. Poner los CSVs
-```
-havisense-backend/
-  data/
-    hey_clientes.csv
-    hey_productos.csv
-    hey_transacciones.csv
-```
-
-### 4. Correr el servidor
+### 3. Correr
 ```bash
-uvicorn main:app --reload --port 8000
+npm run dev
+# → http://localhost:3000
 ```
-
-### 5. Verificar que funciona
-Abre: http://localhost:8000/docs
 
 ---
 
-## Endpoints principales
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/perfil/{user_id}` | Perfil completo + segmento del usuario |
-| POST | `/chat` | Chat con HEYA (conversación multi-turno) |
-| POST | `/trigger` | Mensaje proactivo por evento |
-| GET | `/insights/dashboard` | Métricas globales para el dashboard |
-| GET | `/usuarios/sample` | 10 usuarios de muestra para el demo |
+## Credenciales de demo
+```
+Email:    usr-00001@hey.mx
+Password: usr-00001
+```
 
 ---
 
-## Ejemplo de uso — Chat
+## Páginas
 
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": "USR-00001",
-    "mensaje": "Hola, me interesa un crédito personal",
-    "historial": []
-  }'
-```
-
-## Ejemplo de uso — Trigger
-
-```bash
-curl -X POST http://localhost:8000/trigger \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": "USR-00001",
-    "trigger": "nomina"
-  }'
-```
-
-### Triggers disponibles
-- `nomina` — nómina recibida
-- `rechazo_txn` — transacción rechazada
-- `inactividad` — más de 30 días sin login
-- `cross_sell_seguro` — tiene tarjeta pero no seguro
-- `cross_sell_inversion` — ingreso alto sin inversión
-- `patron_atipico` — actividad inusual detectada
+| Ruta | Descripción |
+|------|-------------|
+| `/login` | Login con JWT |
+| `/dashboard` | Métricas globales + tabla de usuarios |
+| `/chat?user=USR-XXXXX` | Chat con HEYA |
+| `/perfil` | Perfil del cliente + triggers proactivos |
 
 ---
 
-## Cómo conectar con el frontend Next.js
+## Conectar con el backend
 
-```typescript
-// En tu componente de chat
-const res = await fetch('http://localhost:8000/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    user_id: userId,
-    mensaje: inputText,
-    historial: conversationHistory
-  })
-})
-const data = await res.json()
-// data.respuesta → texto de HEYA
-// data.segmento  → info del segmento del cliente
-// data.perfil    → datos del cliente
-```
+El frontend se comunica con el backend via `src/lib/api.ts`.
+El token JWT se guarda en `localStorage` y se inyecta en cada request automáticamente.
+
+Si el token expira, redirige automáticamente a `/login`.
